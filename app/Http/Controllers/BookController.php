@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Book;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class BookController extends Controller
@@ -27,8 +29,16 @@ class BookController extends Controller
             return back()->withErrors($validator->errors())->withInput($request->all());
         }
 
-        $image_path = 'public/images/default-image.png';
+        $validated = $validator->validated();
+        $validated['author_id'] = Auth::user()->getAuthIdentifier();
 
+        if ($request->file('file')) {
+            $validated['image_path'] = $request->file('file')->store('public/images');
+        }
+
+        Book::query()->create($validated);
+
+        return redirect()->route('home');
     }
 
 
